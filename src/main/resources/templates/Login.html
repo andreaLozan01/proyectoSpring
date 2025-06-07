@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Carpooling UTS</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://www.uts.edu.co/sitio/wp-content/uploads/2024/02/3.jpg') no-repeat center center/cover;
+      background-attachment: fixed;
+    }
+    .navbar {
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    .navbar.scrolled {
+      background-color: rgba(0, 0, 0, 0.95);
+      transform: translateY(0);
+    }
+    .logo {
+      transition: transform 0.3s ease;
+    }
+    .logo:hover {
+      transform: scale(1.1);
+    }
+    .container {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .container:hover {
+      transform: scale(1.02);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    button {
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    button:hover {
+      background-color: #e6b800;
+      transform: scale(1.05);
+    }
+    input, select {
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    input:focus, select:focus {
+      border-color: #facc15;
+      box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.3);
+    }
+    .toggle a {
+      transition: color 0.2s ease;
+    }
+    .toggle a:hover {
+      color: #facc15;
+    }
+    .error, .success {
+      transition: opacity 0.3s ease;
+    }
+  </style>
+</head>
+<body class="font-sans min-h-screen flex flex-col">
+  <!-- Navegación fija -->
+  <nav class="navbar fixed top-0 left-0 w-full bg-black text-white shadow-lg z-50">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <a class="flex items-center space-x-2" th:href="@{/}">
+        <img src="/logo.png" alt="Logo AR Carpooling" class="h-12 logo">
+        <span class="text-xl font-bold">Carpooling UTS</span>
+      </a>
+      <div class="space-x-4">
+        <a th:href="@{/}" class="hover:text-yellow-400 transition-colors">Inicio</a>
+        <a th:href="@{/}" class="hover:text-yellow-400 transition-colors">Acerca</a>
+        <a th:href="@{/login}" class="hover:text-yellow-400 transition-colors">Iniciar Sesión</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenedor del formulario con espacio añadido -->
+  <div class="flex-grow flex items-center justify-center py-20">
+    <div class="container bg-white p-8 rounded-lg shadow-xl w-full max-w-md" id="formContainer">
+      <img src="/logo.png" alt="Carpooling Logo" class="mx-auto h-20 mb-6 logo">
+      <h1 class="text-3xl font-bold text-center text-yellow-500 mb-6" id="formTitle">Iniciar Sesión</h1>
+      <!-- Formulario de inicio de sesión -->
+      <form id="loginForm" class="space-y-5">
+        <div class="form-group">
+          <label for="loginEmail" class="block text-sm font-medium text-gray-700">Correo:</label>
+          <input type="email" id="loginEmail" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none" required>
+          <div class="error text-red-500 text-xs mt-1 hidden" id="loginEmailError">Por favor, ingrese un correo válido.</div>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword" class="block text-sm font-medium text-gray-700">Contraseña:</label>
+          <input type="password" id="loginPassword" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none" required>
+          <div class="error text-red-500 text-xs mt-1 hidden" id="loginPasswordError">La contraseña debe tener al menos 6 caracteres.</div>
+        </div>
+        <button type="submit" class="w-full bg-yellow-400 text-black font-bold py-3 rounded-lg">Iniciar Sesión</button>
+      </form>
+      <!-- Formulario de registro -->
+      <form id="registerForm" class="space-y-5 hidden">
+        <div class="form-group">
+          <label for="regName" class="block text-sm font-medium text-gray-700">Nombre:</label>
+          <input type="text" id="regName" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none" required>
+          <div class="error text-red-500 text-xs mt-1 hidden" id="regNameError">Por favor, ingrese un nombre.</div>
+        </div>
+        <div class="form-group">
+          <label for="regEmail" class="block text-sm font-medium text-gray-700">Correo:</label>
+          <input type="email" id="regEmail" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none" required>
+          <div class="error text-red-500 text-xs mt-1 hidden" id="regEmailError">Por favor, ingrese un correo válido.</div>
+        </div>
+        <div class="form-group">
+          <label for="regCelular" class="block text-sm font-medium text-gray-700">Celular:</label>
+          <input type="tel" id="regCelular" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none" required>
+          <div class="error text-red-500 text-xs mt-1 hidden" id="regCelularError">Por favor, ingrese un número de celular válido.</div>
+        </div>
+        <div class="form-group">
+          <label for="regUniversidad" class="block text-sm font-medium text-gray-700">Universidad:</label>
+          <select id="regUniversidad" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none" required>
+            <option value="" disabled selected>Seleccione una universidad</option>
+            <option value="Universidad Industrial de Santander (UIS)">Universidad Industrial de Santander (UIS)</option>
+            <option value="Universidad de Santander (UDES)">Universidad de Santander (UDES)</option>
+            <option value="Unidades Tecnológicas de Santander (UTS)">Unidades Tecnológicas de Santander (UTS)</option>
+            <option value="Otra Universidad">Otra Universidad</option>
+          </select>
+          <div class="error text-red-500 text-xs mt-1 hidden" id="regUniversidadError">Por favor, seleccione una universidad.</div>
+        </div>
+        <div class="form-group hidden" id="roleGroup">
+          <label for="regRol" class="block text-sm font-medium text-gray-700">Rol:</label>
+          <select id="regRol" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none">
+            <option value="" disabled selected>Seleccione un rol</option>
+            <option value="Conductor">Conductor</option>
+            <option value="Pasajero">Pasajero</option>
+          </select>
+          <div class="error text-red-500 text-xs mt-1 hidden" id="regRolError">Por favor, seleccione un rol.</div>
+        </div>
+        <div class="form-group">
+          <label for="regPassword" class="block text-sm font-medium text-gray-700">Contraseña:</label>
+          <input type="password" id="regPassword" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none" required>
+          <div class="error text-red-500 text-xs mt-1 hidden" id="regPasswordError">La contraseña debe tener al menos 6 caracteres.</div>
+        </div>
+        <button type="submit" class="w-full bg-yellow-400 text-black font-bold py-3 rounded-lg">Registrarse</button>
+        <div class="success text-green-500 text-xs text-center mt-2 hidden" id="successMessage">Registro exitoso!</div>
+      </form>
+      <div class="toggle text-center mt-4">
+        <p class="text-sm text-gray-600">¿No tienes cuenta? <a href="#" id="toggleForm" class="text-yellow-500 font-semibold">Regístrate</a></p>
+        <p class="text-sm text-gray-600 hidden" id="toggleBack">¿Ya tienes cuenta? <a href="#" id="toggleBackLink" class="text-yellow-500 font-semibold">Inicia Sesión</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-black text-white py-12">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="text-center md:text-left">
+          <img src="https://www.uts.edu.co/sitio/wp-content/uploads/2019/10/Logo-UTS-1.png" alt="Logo UTS" class="h-16 mx-auto md:mx-0 mb-4">
+          <p class="text-sm">
+            Carpooling UTS es una plataforma colaborativa diseñada para mejorar la movilidad de los estudiantes de las Unidades Tecnológicas de Santander, promoviendo seguridad y organización.
+          </p>
+        </div>
+        <div class="text-center">
+          <h3 class="text-lg font-bold mb-4">Enlaces Rápidos</h3>
+          <ul class="space-y-2">
+            <li><a th:href="@{/}" class="hover:text-yellow-400">Inicio</a></li>
+            <li><a th:href="@{/}" class="hover:text-yellow-400">Acerca</a></li>
+            <li><a th:href="@{/login}" class="hover:text-yellow-400">Iniciar Sesión</a></li>
+            <li><a href="https://www.uts.edu.co" target="_blank" class="hover:text-yellow-400">Sitio Web UTS</a></li>
+          </ul>
+        </div>
+        <div class="text-center md:text-right">
+          <h3 class="text-lg font-bold mb-4">Contáctanos</h3>
+          <p class="text-sm mb-2">Email: carpooling@uts.edu.co</p>
+          <p class="text-sm mb-4">Teléfono: +57 607 123 4567</p>
+          <div class="flex justify-center md:justify-end space-x-4">
+            <a href="https://facebook.com/utsoficial" target="_blank" class="hover:text-yellow-400">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+            </a>
+            <a href="https://twitter.com/utsoficial" target="_blank" class="hover:text-yellow-400">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a href="https://instagram.com/utsoficial" target="_blank" class="hover:text-yellow-400">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.948-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-8 text-center text-sm border-t border-gray-700 pt-4">
+        <p>© 2025 Carpooling UTS. Todos los derechos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const toggleForm = document.getElementById('toggleForm');
+    const toggleBack = document.getElementById('toggleBack');
+    const toggleBackLink = document.getElementById('toggleBackLink');
+    const formTitle = document.getElementById('formTitle');
+    const successMessage = document.getElementById('successMessage');
+    const universidadSelect = document.getElementById('regUniversidad');
+    const roleGroup = document.getElementById('roleGroup');
+    const rolSelect = document.getElementById('regRol');
+
+    toggleForm.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'block';
+      formTitle.textContent = 'Registrarse';
+      toggleBack.style.display = 'block';
+      successMessage.style.display = 'none';
+      roleGroup.style.display = 'none';
+      rolSelect.value = '';
+      rolSelect.removeAttribute('required');
+    });
+
+    toggleBackLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      registerForm.style.display = 'none';
+      loginForm.style.display = 'block';
+      formTitle.textContent = 'Iniciar Sesión';
+      toggleBack.style.display = 'none';
+      successMessage.style.display = 'none';
+    });
+
+    universidadSelect.addEventListener('change', () => {
+      const universidad = universidadSelect.value;
+      if (universidad === 'Unidades Tecnológicas de Santander (UTS)') {
+        roleGroup.style.display = 'block';
+        rolSelect.setAttribute('required', 'required');
+      } else {
+        roleGroup.style.display = 'none';
+        rolSelect.value = '';
+        rolSelect.removeAttribute('required');
+      }
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const emailError = document.getElementById('loginEmailError');
+      const passwordError = document.getElementById('loginPasswordError');
+
+      let isValid = true;
+      if (!email.includes('@') || !email.includes('.')) {
+        emailError.style.display = 'block';
+        isValid = false;
+      } else {
+        emailError.style.display = 'none';
+      }
+      if (password.length < 6) {
+        passwordError.style.display = 'block';
+        isValid = false;
+      } else {
+        passwordError.style.display = 'none';
+      }
+
+      if (isValid) {
+        try {
+          const response = await fetch('/api/users/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+          if (response.ok) {
+            const user = await response.json();
+            if (user.aprobado === true) {
+              localStorage.setItem('userId', user.userId);
+              localStorage.setItem('rol', user.rol ? user.rol.toLowerCase() : '');
+              let dashboardUrl = '';
+              const rol = user.rol ? user.rol.toLowerCase() : '';
+              switch (rol) {
+                case 'admin':
+                  dashboardUrl = 'dashboard-admin';
+                  break;
+                case 'coordinador':
+                  dashboardUrl = 'dashboard-coordinador';
+                  break;
+                case 'pasajero':
+                  dashboardUrl = 'dashboard-pasajero';
+                  break;
+                case 'usuario invitado':
+                  dashboardUrl = 'dashboard-invitado';
+                  break;
+                case 'conductor':
+                  dashboardUrl = 'dashboard-conductor';
+                  break;
+                default:
+                  alert('No se pudo iniciar sesión para el rol: ' + user.rol);
+                  return;
+              }
+              if (dashboardUrl) {
+                window.location.href = dashboardUrl; // Sin .html, usa rutas de Thymeleaf
+              } else {
+                alert('No se pudo iniciar sesión para el rol: ' + user.rol);
+              }
+            } else {
+              alert('No puedes iniciar sesión. Tu cuenta no ha sido aprobada.');
+            }
+          } else {
+            alert('Correo o contraseña incorrectos.');
+          }
+        } catch (error) {
+          alert('Error al iniciar sesión: ' + error.message);
+        }
+      }
+    });
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('regName').value;
+      const email = document.getElementById('regEmail').value;
+      const celular = document.getElementById('regCelular').value;
+      const universidad = document.getElementById('regUniversidad').value;
+      const password = document.getElementById('regPassword').value;
+      const rol = universidad === 'Unidades Tecnológicas de Santander (UTS)' ? document.getElementById('regRol').value : 'Usuario Invitado';
+      const nameError = document.getElementById('regNameError');
+      const emailError = document.getElementById('regEmailError');
+      const celularError = document.getElementById('regCelularError');
+      const universidadError = document.getElementById('regUniversidadError');
+      const passwordError = document.getElementById('regPasswordError');
+      const rolError = document.getElementById('regRolError');
+
+      let isValid = true;
+      if (!name) {
+        nameError.style.display = 'block';
+        isValid = false;
+      } else {
+        nameError.style.display = 'none';
+      }
+      if (!email.includes('@') || !email.includes('.')) {
+        emailError.style.display = 'block';
+        isValid = false;
+      } else {
+        emailError.style.display = 'none';
+      }
+      if (!/^\d{10}$/.test(celular)) {
+        celularError.style.display = 'block';
+        isValid = false;
+      } else {
+        celularError.style.display = 'none';
+      }
+      if (!universidad) {
+        universidadError.style.display = 'block';
+        isValid = false;
+      } else {
+        universidadError.style.display = 'none';
+      }
+      if (universidad === 'Unidades Tecnológicas de Santander (UTS)' && !rol) {
+        rolError.style.display = 'block';
+        isValid = false;
+      } else {
+        rolError.style.display = 'none';
+      }
+      if (password.length < 6) {
+        passwordError.style.display = 'block';
+        isValid = false;
+      } else {
+        passwordError.style.display = 'none';
+      }
+
+      if (isValid) {
+        let estado = 'PENDIENTE';
+        let aprobado = false;
+        if (universidad === 'Unidades Tecnológicas de Santander (UTS)') {
+          estado = 'ACTIVO';
+          aprobado = true;
+        }
+
+        try {
+          const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre: name, email, celular, universidad, password, rol, estado, aprobado })
+          });
+          if (response.ok) {
+            successMessage.textContent = estado === 'ACTIVO' 
+              ? 'Registro exitoso! Su cuenta está activa.' 
+              : 'Registro exitoso! Su cuenta está en revisión por el Administrador (Usuario Invitado).';
+            successMessage.style.display = 'block';
+            setTimeout(() => {
+              registerForm.style.display = 'none';
+              loginForm.style.display = 'block';
+              formTitle.textContent = 'Iniciar Sesión';
+              toggleBack.style.display = 'none';
+              successMessage.style.display = 'none';
+              document.getElementById('regName').value = '';
+              document.getElementById('regEmail').value = '';
+              document.getElementById('regCelular').value = '';
+              document.getElementById('regUniversidad').value = '';
+              document.getElementById('regPassword').value = '';
+              rolSelect.value = '';
+            }, 2000);
+          } else {
+            alert('Error al registrarse: ' + (await response.text()));
+          }
+        } catch (error) {
+          alert('Error al registrarse: ' + error.message);
+        }
+      }
+    });
+
+    // Cambiar estilo de la barra de navegación al hacer scroll
+    window.addEventListener('scroll', () => {
+      const navbar = document.querySelector('.navbar');
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+  </script>
+</body>
+</html>
