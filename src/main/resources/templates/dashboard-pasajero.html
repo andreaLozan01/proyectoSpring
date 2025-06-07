@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -74,7 +74,7 @@
     <!-- Barra lateral -->
     <aside class="sidebar w-16 lg:w-64 bg-gray-800 text-white p-4 flex flex-col h-screen fixed transition-all duration-200 z-50">
         <div class="mb-6">
-            <img src="logo.png" alt="Logo AR Carpooling" class="h-10 mx-auto mb-2">
+            <img src="/logo.png" alt="Logo AR Carpooling" class="h-10 mx-auto mb-2">
             <h2 class="text-center text-lg font-semibold hidden lg:block">Carpooling UTS</h2>
         </div>
         <nav class="flex-1">
@@ -181,13 +181,13 @@
         document.addEventListener('DOMContentLoaded', async () => {
             if (!userId || !currentRole) {
                 alert('Por favor, inicia sesión.');
-                window.location.href = 'login.html';
+                window.location.href = '/login';
                 return;
             }
 
             if (currentRole !== 'pasajero') {
                 alert('Acceso denegado. Este dashboard es solo para pasajeros.');
-                window.location.href = 'login.html';
+                window.location.href = '/login';
                 return;
             }
 
@@ -291,7 +291,7 @@
                                 <td class="p-3 border-b border-gray-600">${request.solicitudId || 'N/A'}</td>
                                 <td class="p-3 border-b border-gray-600">${request.rutaId || 'N/A'}</td>
                                 <td class="p-3 border-b border-gray-600">${request.estado || 'N/A'}</td>
-                                <td class currency="p-3 border-b border-gray-600">${request.fechaSolicitud ? new Date(request.fechaSolicitud).toLocaleString('es-CO', { timeZone: 'America/Bogota' }) : 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${request.fechaSolicitud ? new Date(request.fechaSolicitud).toLocaleString('es-CO', { timeZone: 'America/Bogota' }) : 'N/A'}</td>
                                 <td class="p-3 border-b border-gray-600">${conductor.nombre || 'N/A'}</td>
                                 <td class="p-3 border-b border-gray-600">${conductor.celular || 'N/A'}</td>
                                 <td class="p-3 border-b border-gray-600">${route.precio || 'N/A'} COP</td>
@@ -442,7 +442,7 @@
         function logout() {
             localStorage.removeItem('userId');
             localStorage.removeItem('rol');
-            window.location.href = 'login.html';
+            window.location.href = '/login';
         }
     </script>
 </body>

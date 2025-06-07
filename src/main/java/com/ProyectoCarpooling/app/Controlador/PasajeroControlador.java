@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/dashboard-pasajero")
 public class PasajeroControlador {
 
-    @GetMapping("/dashboard")
+    @GetMapping
     public String mostrarDashboardPasajero() {
         return "dashboard-pasajero"; // Coincide con dashboard-pasajero.html en templates/
     }
