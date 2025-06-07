@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrador</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+    <style>
+        body {
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://www.uts.edu.co/sitio/wp-content/uploads/2024/02/3.jpg') no-repeat center center/cover;
+            background-attachment: fixed;
+            color: #f5f5f5;
+            font-family: 'Arial', sans-serif;
+        }
+        .sidebar {
+            transition: width 0.2s ease;
+        }
+        .sidebar:hover {
+            width: 250px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        button {
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        button:hover {
+            background-color: #d4af37;
+            transform: scale(1.02);
+        }
+        input, select {
+            transition: border-color 0.2s ease;
+        }
+        input:focus, select:focus {
+            border-color: #d4af37;
+            outline: none;
+        }
+        .table-row:hover {
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <!-- Barra lateral -->
+    <aside class="sidebar w-16 lg:w-64 bg-gray-800 text-white p-4 flex flex-col h-screen fixed transition-all duration-200 z-50">
+        <div class="mb-6">
+            <img src="logo.png" alt="Logo AR Carpooling" class="h-10 mx-auto mb-2">
+            <h2 class="text-center text-lg font-semibold hidden lg:block">Carpooling UTS</h2>
+        </div>
+        <nav class="flex-1">
+            <a href="#dashboard" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Dashboard</a>
+            <a href="#users" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Usuarios</a>
+            <a href="#routes" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Rutas</a>
+            <a href="#reports" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Reportes</a>
+        </nav>
+        <div class="mt-auto">
+            <button onclick="logout()" class="w-full py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="ml-16 lg:ml-64 p-6 flex-1">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold">Panel de Administrador</h1>
+            <div class="flex items-center space-x-4">
+                <div id="userInfo" class="text-sm"></div>
+                <div class="bg-gray-700 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjetas de secciones -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Crear Nuevo Usuario -->
+            <div class="card p-4">
+                <h2 class="text-xl font-semibold mb-4">Crear Nuevo Usuario</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col">
+                        <label for="newNombre" class="text-sm font-medium mb-1">Nombre</label>
+                        <input type="text" id="newNombre" placeholder="Nombre" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="newNombreError">Por favor, ingrese un nombre.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="newEmail" class="text-sm font-medium mb-1">Correo</label>
+                        <input type="email" id="newEmail" placeholder="Correo" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="newEmailError">Por favor, ingrese un correo válido.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="newCelular" class="text-sm font-medium mb-1">Celular</label>
+                        <input type="tel" id="newCelular" placeholder="Celular" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="newCelularError">Por favor, ingrese un número válido.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="newUniversidad" class="text-sm font-medium mb-1">Universidad</label>
+                        <select id="newUniversidad" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                            <option value="" disabled selected>Seleccione</option>
+                            <option value="Universidad Industrial de Santander (UIS)">UIS</option>
+                            <option value="Universidad de Santander (UDES)">UDES</option>
+                            <option value="Unidades Tecnológicas de Santander (UTS)">UTS</option>
+                            <option value="Otra Universidad">Otra</option>
+                        </select>
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="newUniversidadError">Seleccione una universidad.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="newRol" class="text-sm font-medium mb-1">Rol</label>
+                        <select id="newRol" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                            <option value="" disabled selected>Seleccione</option>
+                            <option value="Admin">Administrador</option>
+                            <option value="Conductor">Conductor</option>
+                            <option value="Pasajero">Pasajero</option>
+                            <option value="Coordinador">Coordinador</option>
+                            <option value="Usuario Invitado">Invitado</option>
+                        </select>
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="newRolError">Seleccione un rol.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="newPassword" class="text-sm font-medium mb-1">Contraseña</label>
+                        <input type="password" id="newPassword" placeholder="Contraseña" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="newPasswordError">Mínimo 6 caracteres.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="newEstado" class="text-sm font-medium mb-1">Estado</label>
+                        <select id="newEstado" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                            <option value="" disabled selected>Seleccione</option>
+                            <option value="ACTIVO">Activo</option>
+                            <option value="INACTIVO">Inactivo</option>
+                            <option value="PENDIENTE">Pendiente</option>
+                        </select>
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="newEstadoError">Seleccione un estado.</div>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button onclick="createUser()" class="bg-yellow-500 text-white font-medium py-2 px-4 rounded-lg">Crear Usuario</button>
+                </div>
+                <div class="success text-green-500 text-xs text-center mt-2 hidden" id="successMessage">Usuario creado.</div>
+            </div>
+
+            <!-- Listado de Usuarios -->
+            <div class="card p-4">
+                <h2 class="text-xl font-semibold mb-4">Listado de Usuarios</h2>
+                <div class="flex justify-center mb-4">
+                    <input type="text" id="searchInput" placeholder="Buscar..." onkeyup="filterUsers()" class="w-full max-w-md p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="usersTable" class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-700">
+                                <th class="p-3 text-left border-b border-gray-600">ID</th>
+                                <th class="p-3 text-left border-b border-gray-600">Nombre</th>
+                                <th class="p-3 text-left border-b border-gray-600">Rol</th>
+                                <th class="p-3 text-left border-b border-gray-600">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="bg-transparent"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestión de Rutas -->
+        <div class="card p-4 mt-6">
+            <h2 class="text-xl font-semibold mb-4">Gestión de Rutas</h2>
+            <div class="text-center mb-4">
+                <button onclick="openCreateRouteModal()" class="bg-yellow-500 text-white font-medium py-2 px-4 rounded-lg">Crear Nueva Ruta</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table id="routesTable" class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 text-left border-b border-gray-600">ID</th>
+                            <th class="p-3 text-left border-b border-gray-600">Conductor</th>
+                            <th class="p-3 text-left border-b border-gray-600">Origen</th>
+                            <th class="p-3 text-left border-b border-gray-600">Destino</th>
+                            <th class="p-3 text-left border-b border-gray-600">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="routesTableBody" class="bg-transparent"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Modal para editar usuario -->
+        <div id="editUserModal" class="modal fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
+            <div class="modal-content bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+                <span class="close text-xl cursor-pointer float-right" onclick="closeModal('editUserModal')">×</span>
+                <h2 class="text-xl font-semibold text-center text-black mb-4">Editar Usuario</h2>
+                <input type="hidden" id="editUserId">
+                <div class="space-y-4">
+                    <div class="flex flex-col">
+                        <label for="editNombre" class="text-sm font-medium mb-1 text-black">Nombre</label>
+                        <input type="text" id="editNombre" placeholder="Nombre" class="p-2 border border-gray-200 rounded-lg bg-white text-black">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editNombreError">Por favor, ingrese un nombre.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editEmail" class="text-sm font-medium mb-1 text-black">Correo</label>
+                        <input type="email" id="editEmail" placeholder="Correo" class="p-2 border border-gray-200 rounded-lg bg-white text-black">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editEmailError">Por favor, ingrese un correo válido.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editCelular" class="text-sm font-medium mb-1 text-black">Celular</label>
+                        <input type="tel" id="editCelular" placeholder="Celular" class="p-2 border border-gray-200 rounded-lg bg-white text-black">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editCelularError">Por favor, ingrese un número de celular válido.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editUniversidad" class="text-sm font-medium mb-1 text-black">Universidad</label>
+                        <select id="editUniversidad" class="p-2 border border-gray-200 rounded-lg bg-white text-black">
+                            <option value="" disabled>Seleccione una universidad</option>
+                            <option value="Universidad Industrial de Santander (UIS)">Universidad Industrial de Santander (UIS)</option>
+                            <option value="Universidad de Santander (UDES)">Universidad de Santander (UDES)</option>
+                            <option value="Unidades Tecnológicas de Santander (UTS)">Unidades Tecnológicas de Santander (UTS)</option>
+                            <option value="Otra Universidad">Otra Universidad</option>
+                        </select>
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editUniversidadError">Por favor, seleccione una universidad.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editRol" class="text-sm font-medium mb-1 text-black">Rol</label>
+                        <select id="editRol" class="p-2 border border-gray-200 rounded-lg bg-white text-black">
+                            <option value="" disabled>Seleccione un rol</option>
+                            <option value="Admin">Administrador</option>
+                            <option value="Conductor">Conductor</option>
+                            <option value="Pasajero">Pasajero</option>
+                            <option value="Coordinador">Coordinador</option>
+                            <option value="Usuario Invitado">Invitado</option>
+                        </select>
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editRolError">Por favor, seleccione un rol.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editEstado" class="text-sm font-medium mb-1 text-black">Estado</label>
+                        <select id="editEstado" class="p-2 border border-gray-200 rounded-lg bg-white text-black">
+                            <option value="" disabled>Seleccione un estado</option>
+                            <option value="ACTIVO">Activo</option>
+                            <option value="INACTIVO">Inactivo</option>
+                            <option value="PENDIENTE">Pendiente</option>
+                        </select>
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editEstadoError">Por favor, seleccione un estado.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editCoordinadorId" class="text-sm font-medium mb-1 text-black">Coordinador (si aplica)</label>
+                        <select id="editCoordinadorId" class="p-2 border border-gray-200 rounded-lg bg-white text-black">
+                            <option value="" disabled selected>Seleccione un coordinador</option>
+                            <option value="none">Ninguno</option>
+                        </select>
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editCoordinadorIdError">Por favor, seleccione un coordinador válido.</div>
+                    </div>
+                    <button onclick="updateUser()" class="w-full bg-yellow-500 text-white font-medium py-2 rounded-lg">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para crear ruta -->
+        <div id="createRouteModal" class="modal fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
+            <div class="modal-content bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+                <span class="close text-xl cursor-pointer float-right" onclick="closeModal('createRouteModal')">×</span>
+                <h2 class="text-xl font-semibold text-center text-black mb-4">Crear Nueva Ruta</h2> <!-- Cambiado a text-black -->
+                <div class="space-y-3">
+                    <div class="flex flex-col">
+                        <label for="createConductorId" class="text-sm font-medium mb-1 text-black">Conductor</label> <!-- Cambiado a text-black -->
+                        <select id="createConductorId" class="p-2 border border-gray-200 rounded-lg bg-white text-black"> <!-- Cambiado a text-black -->
+                            <option value="" disabled selected>Seleccione un conductor</option>
+                        </select>
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="createConductorIdError">Por favor, seleccione un conductor.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="createOrigen" class="text-sm font-medium mb-1 text-black">Origen</label> <!-- Cambiado a text-black -->
+                        <input type="text" id="createOrigen" placeholder="Origen" class="p-2 border border-gray-200 rounded-lg bg-white text-black"> <!-- Cambiado a text-black -->
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="createOrigenError">Por favor, ingrese un origen.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="createDestino" class="text-sm font-medium mb-1 text-black">Destino</label> <!-- Cambiado a text-black -->
+                        <input type="text" id="createDestino" placeholder="Destino" class="p-2 border border-gray-200 rounded-lg bg-white text-black"> <!-- Cambiado a text-black -->
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="createDestinoError">Por favor, ingrese un destino.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="createFechaHora" class="text-sm font-medium mb-1 text-black">Fecha y Hora</label> <!-- Cambiado a text-black -->
+                        <input type="datetime-local" id="createFechaHora" class="p-2 border border-gray-200 rounded-lg bg-white text-black"> <!-- Cambiado a text-black -->
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="createFechaHoraError">Por favor, seleccione una fecha y hora.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="createPrecio" class="text-sm font-medium mb-1 text-black">Precio (0-4000 COP)</label> <!-- Cambiado a text-black -->
+                        <input type="number" id="createPrecio" placeholder="Precio" class="p-2 border border-gray-200 rounded-lg bg-white text-black"> <!-- Cambiado a text-black -->
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="createPrecioError">El precio debe estar entre 0 y 4000 COP.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="createCupos" class="text-sm font-medium mb-1 text-black">Cupos</label> <!-- Cambiado a text-black -->
+                        <input type="number" id="createCupos" placeholder="Cupos" class="p-2 border border-gray-200 rounded-lg bg-white text-black"> <!-- Cambiado a text-black -->
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="createCuposError">Por favor, ingrese un número de cupos válido.</div>
+                    </div>
+                    <button onclick="createRoute()" class="w-full bg-yellow-500 text-white font-medium py-2 rounded-lg">Crear Ruta</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para editar ruta -->
+        <div id="editRouteModal" class="modal fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
+            <div class="modal-content bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+                <span class="close text-xl cursor-pointer float-right" onclick="closeModal('editRouteModal')">×</span>
+                <h2 class="text-xl font-semibold text-center text-gray-800 mb-4">Editar Ruta</h2>
+                <input type="hidden" id="editRouteId">
+                <div class="space-y-3">
+                    <div class="flex flex-col">
+                        <label for="editConductorId" class="text-sm font-medium mb-1">Conductor</label>
+                        <select id="editConductorId" class="p-2 border border-gray-200 rounded-lg"></select>
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editConductorIdError">Por favor, seleccione un conductor.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editOrigen" class="text-sm font-medium mb-1">Origen</label>
+                        <input type="text" id="editOrigen" placeholder="Origen" class="p-2 border border-gray-200 rounded-lg">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editOrigenError">Por favor, ingrese un origen.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editDestino" class="text-sm font-medium mb-1">Destino</label>
+                        <input type="text" id="editDestino" placeholder="Destino" class="p-2 border border-gray-200 rounded-lg">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editDestinoError">Por favor, ingrese un destino.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editFechaHora" class="text-sm font-medium mb-1">Fecha y Hora</label>
+                        <input type="datetime-local" id="editFechaHora" class="p-2 border border-gray-200 rounded-lg">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editFechaHoraError">Por favor, seleccione una fecha y hora.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editPrecio" class="text-sm font-medium mb-1">Precio (0-4000 COP)</label>
+                        <input type="number" id="editPrecio" placeholder="Precio" class="p-2 border border-gray-200 rounded-lg">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editPrecioError">El precio debe estar entre 0 y 4000 COP.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editCupos" class="text-sm font-medium mb-1">Cupos</label>
+                        <input type="number" id="editCupos" placeholder="Cupos" class="p-2 border border-gray-200 rounded-lg">
+                        <div class="error text-red-500 text-xs mt-1 hidden" id="editCuposError">Por favor, ingrese un número de cupos válido.</div>
+                    </div>
+                    <button onclick="updateRoute()" class="w-full bg-yellow-500 text-white font-medium py-2 rounded-lg">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para gestionar solicitudes -->
+        <div id="manageRequestsModal" class="modal fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
+            <div class="modal-content bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+                <span class="close text-xl cursor-pointer float-right" onclick="closeModal('manageRequestsModal')">×</span>
+                <h2 class="text-xl font-semibold text-center text-gray-800 mb-4">Gestión de Solicitudes</h2>
+                <input type="hidden" id="manageRouteId">
+                <div class="overflow-x-auto">
+                    <table id="requestsTable" class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-3 text-left border-b border-gray-200 font-medium">ID</th>
+                                <th class="p-3 text-left border-b border-gray-200 font-medium">Pasajero</th>
+                                <th class="p-3 text-left border-b border-gray-200 font-medium">Estado</th>
+                                <th class="p-3 text-left border-b border-gray-200 font-medium">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestsTableBody" class="bg-white"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const adminId = localStorage.getItem('userId');
+        const currentRole = localStorage.getItem('rol');
+        let allUsers = [];
+        let allRoutes = [];
+        let conductors = [];
+        let coordinators = [];
+        let activeTimers = {};
+
+        // Validar acceso y cargar datos
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!adminId || !currentRole) {
+                alert('Por favor, inicia sesión.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (currentRole !== 'admin') {
+                alert('Acceso denegado. Este dashboard es solo para administradores.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/${adminId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('userInfo').textContent = `Usuario: ${user.nombre || adminId} (Administrador)`;
+                } else {
+                    document.getElementById('userInfo').textContent = `Usuario: ${adminId} (Administrador)`;
+                }
+            } catch (error) {
+                console.error('Error al cargar información del usuario:', error);
+                document.getElementById('userInfo').textContent = `Usuario: ${adminId} (Administrador)`;
+            }
+
+            await loadUsers();
+            await loadCoordinators();
+            await loadConductors();
+            await loadRoutes();
+        });
+
+        // Cargar todos los usuarios
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    allUsers = await response.json();
+                    displayUsers(allUsers);
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                alert('Error al cargar usuarios: ' + error.message);
+                console.error('Detalles del error:', error);
+            }
+        }
+
+        // Cargar coordinadores para el formulario de edición
+        async function loadCoordinators() {
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    coordinators = (await response.json()).filter(user => user.rol.toLowerCase() === 'coordinador');
+                } else {
+                    alert('Error al cargar coordinadores: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al cargar coordinadores: ' + error.message);
+            }
+        }
+
+        // Mostrar usuarios en la tabla
+        function displayUsers(users) {
+            const tableBody = document.getElementById('usersTableBody');
+            tableBody.innerHTML = '';
+
+            if (users.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center border-b border-gray-600">No hay usuarios disponibles.</td></tr>';
+            } else {
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.classList.add('table-row');
+                    row.innerHTML = `
+                        <td class="p-3 border-b border-gray-600">${user.userId || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">${user.nombre || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">${user.rol || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">
+                            <button onclick="openEditUserModal('${user.userId}')" class="bg-yellow-500 text-white font-medium py-1 px-3 rounded-lg mr-2">Editar</button>
+                            <button onclick="deleteUser('${user.userId}')" class="bg-red-500 text-white font-medium py-1 px-3 rounded-lg">Eliminar</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+
+        // Filtrar usuarios según el texto de búsqueda
+        function filterUsers() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const filteredUsers = allUsers.filter(user =>
+                (user.nombre && user.nombre.toLowerCase().includes(searchText)) ||
+                (user.email && user.email.toLowerCase().includes(searchText)) ||
+                (user.rol && user.rol.toLowerCase().includes(searchText))
+            );
+            displayUsers(filteredUsers);
+        }
+
+        // Abrir modal para editar usuario
+        async function openEditUserModal(userId) {
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const user = await response.json();
+                    console.log('Datos del usuario:', user);
+                    document.getElementById('editUserId').value = user.userId;
+                    document.getElementById('editNombre').value = user.nombre || '';
+                    document.getElementById('editEmail').value = user.email || '';
+                    document.getElementById('editCelular').value = user.celular || '';
+                    document.getElementById('editUniversidad').value = user.universidad || '';
+
+                    const rolSelect = document.getElementById('editRol');
+                    rolSelect.value = user.rol || '';
+                    if (rolSelect.value === '') {
+                        console.log('Rol no encontrado en las opciones:', user.rol);
+                        for (let i = 0; i < rolSelect.options.length; i++) {
+                            if (rolSelect.options[i].value.toLowerCase() === (user.rol || '').toLowerCase()) {
+                                rolSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    document.getElementById('editEstado').value = user.estado || '';
+
+                    const coordinadorSelect = document.getElementById('editCoordinadorId');
+                    coordinadorSelect.innerHTML = '<option value="" disabled>Seleccione un coordinador (si aplica)</option><option value="none">Ninguno</option>';
+
+                    const userUniversity = user.universidad;
+                    const availableCoordinators = coordinators.filter(coord => coord.universidad === userUniversity);
+
+                    availableCoordinators.forEach(coordinator => {
+                        const option = document.createElement('option');
+                        option.value = coordinator.userId;
+                        option.textContent = `${coordinator.nombre} (${coordinator.userId})`;
+                        coordinadorSelect.appendChild(option);
+                    });
+
+                    if (user.coordinadorId) {
+                        coordinadorSelect.value = user.coordinadorId;
+                    } else {
+                        coordinadorSelect.value = 'none';
+                    }
+
+                    document.getElementById('editUserModal').style.display = 'flex';
+                } else {
+                    alert('Error al cargar datos del usuario: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al cargar datos del usuario: ' + error.message);
+            }
+        }
+
+        // Actualizar usuario
+        async function updateUser() {
+            const userId = document.getElementById('editUserId').value;
+            const nombre = document.getElementById('editNombre').value;
+            const email = document.getElementById('editEmail').value;
+            const celular = document.getElementById('editCelular').value;
+            const universidad = document.getElementById('editUniversidad').value;
+            const rol = document.getElementById('editRol').value;
+            const estado = document.getElementById('editEstado').value;
+            const coordinadorId = document.getElementById('editCoordinadorId').value === 'none' ? null : document.getElementById('editCoordinadorId').value;
+
+            const nombreError = document.getElementById('editNombreError');
+            const emailError = document.getElementById('editEmailError');
+            const celularError = document.getElementById('editCelularError');
+            const universidadError = document.getElementById('editUniversidadError');
+            const rolError = document.getElementById('editRolError');
+            const estadoError = document.getElementById('editEstadoError');
+            const coordinadorIdError = document.getElementById('editCoordinadorIdError');
+
+            let isValid = true;
+
+            if (!nombre) {
+                nombreError.style.display = 'block';
+                isValid = false;
+            } else {
+                nombreError.style.display = 'none';
+            }
+            if (!email.includes('@') || !email.includes('.')) {
+                emailError.style.display = 'block';
+                isValid = false;
+            } else {
+                emailError.style.display = 'none';
+            }
+            if (!/^\d{10}$/.test(celular)) {
+                celularError.style.display = 'block';
+                isValid = false;
+            } else {
+                celularError.style.display = 'none';
+            }
+            if (!universidad) {
+                universidadError.style.display = 'block';
+                isValid = false;
+            } else {
+                universidadError.style.display = 'none';
+            }
+            if (!rol) {
+                rolError.style.display = 'block';
+                isValid = false;
+            } else {
+                rolError.style.display = 'none';
+            }
+            if (!estado) {
+                estadoError.style.display = 'block';
+                isValid = false;
+            } else {
+                estadoError.style.display = 'none';
+            }
+            if (rol === 'Usuario Invitado' && !coordinadorId) {
+                coordinadorIdError.style.display = 'block';
+                isValid = false;
+            } else {
+                coordinadorIdError.style.display = 'none';
+            }
+
+            if (isValid) {
+                try {
+                    const response = await fetch(`/api/users/${userId}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (!response.ok) {
+                        throw new Error('No se pudo obtener los datos actuales del usuario');
+                    }
+                    const currentUser = await response.json();
+
+                    let aprobado = currentUser.aprobado || false;
+                    if (rol === 'Usuario Invitado' && estado === 'ACTIVO' && !currentUser.aprobado) {
+                        aprobado = true;
+                    }
+
+                    const updatedUser = {
+                        nombre,
+                        email,
+                        celular,
+                        universidad,
+                        rol,
+                        estado,
+                        aprobado,
+                        coordinadorId: rol === 'Coordinador' ? null : coordinadorId
+                    };
+
+                    const putResponse = await fetch(`/api/users/${userId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedUser)
+                    });
+                    if (putResponse.ok) {
+                        alert('Usuario actualizado exitosamente.');
+                        closeModal('editUserModal');
+                        await loadUsers();
+                    } else {
+                        alert('Error al actualizar usuario: ' + (await putResponse.text()));
+                    }
+                } catch (error) {
+                    alert('Error al actualizar usuario: ' + error.message);
+                }
+            }
+        }
+
+        // Eliminar usuario
+        async function deleteUser(userId) {
+            if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    alert('Usuario eliminado exitosamente.');
+                    await loadUsers();
+                } else {
+                    alert('Error al eliminar usuario: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al eliminar usuario: ' + error.message);
+            }
+        }
+
+        // Crear usuario
+        async function createUser() {
+            const nombre = document.getElementById('newNombre').value;
+            const email = document.getElementById('newEmail').value;
+            const celular = document.getElementById('newCelular').value;
+            const universidad = document.getElementById('newUniversidad').value;
+            const rol = document.getElementById('newRol').value;
+            const password = document.getElementById('newPassword').value;
+            const estado = document.getElementById('newEstado').value;
+
+            const nombreError = document.getElementById('newNombreError');
+            const emailError = document.getElementById('newEmailError');
+            const celularError = document.getElementById('newCelularError');
+            const universidadError = document.getElementById('newUniversidadError');
+            const rolError = document.getElementById('newRolError');
+            const passwordError = document.getElementById('newPasswordError');
+            const estadoError = document.getElementById('newEstadoError');
+            const successMessage = document.getElementById('successMessage');
+
+            let isValid = true;
+
+            if (!nombre) {
+                nombreError.style.display = 'block';
+                isValid = false;
+            } else {
+                nombreError.style.display = 'none';
+            }
+            if (!email.includes('@') || !email.includes('.')) {
+                emailError.style.display = 'block';
+                isValid = false;
+            } else {
+                emailError.style.display = 'none';
+            }
+            if (!/^\d{10}$/.test(celular)) {
+                celularError.style.display = 'block';
+                isValid = false;
+            } else {
+                celularError.style.display = 'none';
+            }
+            if (!universidad) {
+                universidadError.style.display = 'block';
+                isValid = false;
+            } else {
+                universidadError.style.display = 'none';
+            }
+            if (!rol) {
+                rolError.style.display = 'block';
+                isValid = false;
+            } else {
+                rolError.style.display = 'none';
+            }
+            if (password.length < 6) {
+                passwordError.style.display = 'block';
+                isValid = false;
+            } else {
+                passwordError.style.display = 'none';
+            }
+            if (!estado) {
+                estadoError.style.display = 'block';
+                isValid = false;
+            } else {
+                estadoError.style.display = 'none';
+            }
+
+            if (isValid) {
+                try {
+                    const aprobado = true;
+                    let coordinadorId = null;
+                    if (rol === 'Coordinador') {
+                        coordinadorId = null;
+                    }
+
+                    const response = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            nombre,
+                            email,
+                            celular,
+                            universidad,
+                            rol,
+                            password,
+                            estado,
+                            aprobado,
+                            coordinadorId
+                        })
+                    });
+                    if (response.ok) {
+                        successMessage.style.display = 'block';
+                        setTimeout(() => {
+                            successMessage.style.display = 'none';
+                            document.getElementById('newNombre').value = '';
+                            document.getElementById('newEmail').value = '';
+                            document.getElementById('newCelular').value = '';
+                            document.getElementById('newUniversidad').value = '';
+                            document.getElementById('newRol').value = '';
+                            document.getElementById('newPassword').value = '';
+                            document.getElementById('newEstado').value = '';
+                        }, 2000);
+                        await loadUsers();
+                    } else {
+                        alert('Error al crear usuario: ' + (await response.text()));
+                    }
+                } catch (error) {
+                    alert('Error al crear usuario: ' + error.message);
+                }
+            }
+        }
+
+        // Cargar conductores para los formularios de rutas
+        async function loadConductors() {
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    conductors = (await response.json()).filter(user => user.rol.toLowerCase() === 'conductor');
+                    const createSelect = document.getElementById('createConductorId');
+                    const editSelect = document.getElementById('editConductorId');
+                    conductors.forEach(conductor => {
+                        const option = document.createElement('option');
+                        option.value = conductor.userId;
+                        option.textContent = conductor.nombre || conductor.userId;
+                        createSelect.appendChild(option.cloneNode(true));
+                        editSelect.appendChild(option);
+                    });
+                } else {
+                    alert('Error al cargar conductores: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al cargar conductores: ' + error.message);
+            }
+        }
+
+        // Cargar todas las rutas
+        async function loadRoutes() {
+            try {
+                const response = await fetch('/api/rutas', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    allRoutes = await response.json();
+                    displayRoutes(allRoutes);
+                } else {
+                    alert('Error al cargar rutas: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al cargar rutas: ' + error.message);
+            }
+        }
+
+        // Mostrar rutas en la tabla
+        function displayRoutes(routes) {
+            const tableBody = document.getElementById('routesTableBody');
+            tableBody.innerHTML = '';
+
+            if (routes.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="p-3 text-center border-b border-gray-600">No hay rutas disponibles.</td></tr>';
+            } else {
+                routes.forEach(route => {
+                    const conductor = conductors.find(c => c.userId === route.conductorId);
+                    const solicitudes = route.solicitudes || [];
+                    const startTime = route.startTime ? new Date(route.startTime).getTime() : null;
+                    const currentTime = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+                    const row = document.createElement('tr');
+                    row.classList.add('table-row');
+                    row.innerHTML = `
+                        <td class="p-3 border-b border-gray-600">${route.rutaId || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">${conductor ? conductor.nombre : route.conductorId}</td>
+                        <td class="p-3 border-b border-gray-600">${route.origen || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">${route.destino || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">
+                            ${route.estado === 'CREADA' ? `<button onclick="openEditRouteModal('${route.rutaId}')" class="bg-yellow-500 text-white font-medium py-1 px-3 rounded-lg mr-2">Editar</button>` : ''}
+                            ${route.estado === 'CREADA' ? `<button onclick="deleteRoute('${route.rutaId}')" class="bg-red-500 text-white font-medium py-1 px-3 rounded-lg mr-2">Eliminar</button>` : ''}
+                            ${route.estado === 'CREADA' && solicitudes.length > 0 ? `<button onclick="openManageRequestsModal('${route.rutaId}')" class="bg-blue-500 text-white font-medium py-1 px-3 rounded-lg mr-2">Gestionar Solicitudes</button>` : ''}
+                            ${route.estado === 'CREADA' && solicitudes.length === 0 ? `<button onclick="startRoute('${route.rutaId}')" class="bg-green-500 text-white font-medium py-1 px-3 rounded-lg mr-2">Iniciar</button>` : ''}
+                            ${route.estado === 'EN_CURSO' ? `<span id="timer-${route.rutaId}" class="inline-block px-2 py-1 bg-gray-100 rounded-lg mr-2">${currentTime} s</span>` : ''}
+                            ${route.estado === 'EN_CURSO' ? `<button onclick="finishRoute('${route.rutaId}')" class="bg-red-500 text-white font-medium py-1 px-3 rounded-lg">Finalizar</button>` : ''}
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+
+                    if (route.estado === 'EN_CURSO') {
+                        startTimer(route.rutaId, startTime);
+                    }
+                });
+            }
+        }
+
+        // Temporizador para rutas en curso
+        function startTimer(rutaId, startTime) {
+            if (activeTimers[rutaId]) clearInterval(activeTimers[rutaId]);
+            activeTimers[rutaId] = setInterval(() => {
+                const currentTime = Math.floor((Date.now() - startTime) / 1000);
+                const timerElement = document.getElementById(`timer-${rutaId}`);
+                if (timerElement) {
+                    timerElement.textContent = `${currentTime} s`;
+                } else {
+                    clearInterval(activeTimers[rutaId]);
+                    delete activeTimers[rutaId];
+                }
+            }, 1000);
+        }
+
+        // Abrir modal para crear ruta
+        function openCreateRouteModal() {
+            document.getElementById('createConductorId').value = '';
+            document.getElementById('createOrigen').value = '';
+            document.getElementById('createDestino').value = '';
+            document.getElementById('createFechaHora').value = '';
+            document.getElementById('createPrecio').value = '';
+            document.getElementById('createCupos').value = '';
+            document.getElementById('createRouteModal').style.display = 'flex';
+        }
+
+        // Crear ruta
+        async function createRoute() {
+            const conductorId = document.getElementById('createConductorId').value;
+            const origen = document.getElementById('createOrigen').value;
+            const destino = document.getElementById('createDestino').value;
+            const fechaHora = document.getElementById('createFechaHora').value;
+            const precio = parseInt(document.getElementById('createPrecio').value);
+            const cupos = parseInt(document.getElementById('createCupos').value);
+
+            const conductorIdError = document.getElementById('createConductorIdError');
+            const origenError = document.getElementById('createOrigenError');
+            const destinoError = document.getElementById('createDestinoError');
+            const fechaHoraError = document.getElementById('createFechaHoraError');
+            const precioError = document.getElementById('createPrecioError');
+            const cuposError = document.getElementById('createCuposError');
+
+            let isValid = true;
+
+            if (!conductorId) {
+                conductorIdError.style.display = 'block';
+                isValid = false;
+            } else {
+                conductorIdError.style.display = 'none';
+            }
+            if (!origen) {
+                origenError.style.display = 'block';
+                isValid = false;
+            } else {
+                origenError.style.display = 'none';
+            }
+            if (!destino) {
+                destinoError.style.display = 'block';
+                isValid = false;
+            } else {
+                destinoError.style.display = 'none';
+            }
+            if (!fechaHora) {
+                fechaHoraError.style.display = 'block';
+                isValid = false;
+            } else {
+                fechaHoraError.style.display = 'none';
+            }
+            if (isNaN(precio) || precio < 0 || precio > 4000) {
+                precioError.style.display = 'block';
+                isValid = false;
+            } else {
+                precioError.style.display = 'none';
+            }
+            if (isNaN(cupos) || cupos <= 0) {
+                cuposError.style.display = 'block';
+                isValid = false;
+            } else {
+                cuposError.style.display = 'none';
+            }
+
+            if (isValid) {
+                try {
+                    const response = await fetch('/api/rutas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            conductorId,
+                            origen,
+                            destino,
+                            fechaHora,
+                            precio,
+                            cupos,
+                            estado: 'CREADA'
+                        })
+                    });
+                    if (response.ok) {
+                        alert('Ruta creada exitosamente.');
+                        closeModal('createRouteModal');
+                        await loadRoutes();
+                    } else {
+                        alert('Error al crear ruta: ' + (await response.text()));
+                    }
+                } catch (error) {
+                    alert('Error al crear ruta: ' + error.message);
+                }
+            }
+        }
+
+        // Abrir modal para editar ruta
+        async function openEditRouteModal(rutaId) {
+            try {
+                const response = await fetch(`/api/rutas/${rutaId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const route = await response.json();
+                    document.getElementById('editRouteId').value = route.rutaId;
+                    document.getElementById('editConductorId').value = route.conductorId;
+                    document.getElementById('editOrigen').value = route.origen;
+                    document.getElementById('editDestino').value = route.destino;
+                    document.getElementById('editFechaHora').value = route.fechaHora.slice(0, 16);
+                    document.getElementById('editPrecio').value = route.precio;
+                    document.getElementById('editCupos').value = route.cupos;
+                    document.getElementById('editRouteModal').style.display = 'flex';
+                } else {
+                    alert('Error al cargar datos de la ruta: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al cargar datos de la ruta: ' + error.message);
+            }
+        }
+
+        // Actualizar ruta
+        async function updateRoute() {
+            const rutaId = document.getElementById('editRouteId').value;
+            const conductorId = document.getElementById('editConductorId').value;
+            const origen = document.getElementById('editOrigen').value;
+            const destino = document.getElementById('editDestino').value;
+            const fechaHora = document.getElementById('editFechaHora').value;
+            const precio = parseInt(document.getElementById('editPrecio').value);
+            const cupos = parseInt(document.getElementById('editCupos').value);
+
+            const conductorIdError = document.getElementById('editConductorIdError');
+            const origenError = document.getElementById('editOrigenError');
+            const destinoError = document.getElementById('editDestinoError');
+            const fechaHoraError = document.getElementById('editFechaHoraError');
+            const precioError = document.getElementById('editPrecioError');
+            const cuposError = document.getElementById('editCuposError');
+
+            let isValid = true;
+
+            if (!conductorId) {
+                conductorIdError.style.display = 'block';
+                isValid = false;
+            } else {
+                conductorIdError.style.display = 'none';
+            }
+            if (!origen) {
+                origenError.style.display = 'block';
+                isValid = false;
+            } else {
+                origenError.style.display = 'none';
+            }
+            if (!destino) {
+                destinoError.style.display = 'block';
+                isValid = false;
+            } else {
+                destinoError.style.display = 'none';
+            }
+            if (!fechaHora) {
+                fechaHoraError.style.display = 'block';
+                isValid = false;
+            } else {
+                fechaHoraError.style.display = 'none';
+            }
+            if (isNaN(precio) || precio < 0 || precio > 4000) {
+                precioError.style.display = 'block';
+                isValid = false;
+            } else {
+                precioError.style.display = 'none';
+            }
+            if (isNaN(cupos) || cupos <= 0) {
+                cuposError.style.display = 'block';
+                isValid = false;
+            } else {
+                cuposError.style.display = 'none';
+            }
+
+            if (isValid) {
+                try {
+                    const response = await fetch(`/api/rutas/${rutaId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            conductorId,
+                            origen,
+                            destino,
+                            fechaHora,
+                            precio,
+                            cupos,
+                            estado: 'CREADA'
+                        })
+                    });
+                    if (response.ok) {
+                        alert('Ruta actualizada exitosamente.');
+                        closeModal('editRouteModal');
+                        await loadRoutes();
+                    } else {
+                        alert('Error al actualizar ruta: ' + (await response.text()));
+                    }
+                } catch (error) {
+                    alert('Error al actualizar ruta: ' + error.message);
+                }
+            }
+        }
+
+        // Eliminar ruta
+        async function deleteRoute(rutaId) {
+            if (!confirm('¿Estás seguro de eliminar esta ruta?')) return;
+            try {
+                const response = await fetch(`/api/rutas/${rutaId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    alert('Ruta eliminada exitosamente.');
+                    await loadRoutes();
+                } else {
+                    alert('Error al eliminar ruta: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al eliminar ruta: ' + error.message);
+            }
+        }
+
+        // Iniciar ruta
+        async function startRoute(rutaId) {
+            try {
+                const response = await fetch(`/api/rutas/${rutaId}/start`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    alert('Ruta iniciada exitosamente.');
+                    await loadRoutes();
+                } else {
+                    alert('Error al iniciar ruta: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al iniciar ruta: ' + error.message);
+            }
+        }
+
+        // Finalizar ruta
+        async function finishRoute(rutaId) {
+            try {
+                const response = await fetch(`/api/rutas/${rutaId}/finish`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    clearInterval(activeTimers[rutaId]);
+                    delete activeTimers[rutaId];
+                    alert('Ruta finalizada exitosamente.');
+                    await loadRoutes();
+                } else {
+                    alert('Error al finalizar ruta: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al finalizar ruta: ' + error.message);
+            }
+        }
+
+        // Abrir modal para gestionar solicitudes
+        async function openManageRequestsModal(rutaId) {
+            document.getElementById('manageRouteId').value = rutaId;
+            const route = allRoutes.find(r => r.rutaId === rutaId);
+            const tableBody = document.getElementById('requestsTableBody');
+            tableBody.innerHTML = '';
+
+            const solicitudes = route.solicitudes || [];
+            if (!route || solicitudes.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center border-b border-gray-200">No hay solicitudes para esta ruta.</td></tr>';
+            } else {
+                for (const solicitud of solicitudes) {
+                    const pasajero = allUsers.find(u => u.userId === solicitud.pasajeroId);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="p-3 border-b border-gray-200">${solicitud.solicitudId || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-200">${pasajero ? pasajero.nombre : solicitud.pasajeroId}</td>
+                        <td class="p-3 border-b border-gray-200">${solicitud.estado || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-200">
+                            ${solicitud.estado === 'PENDIENTE' ? `<button onclick="acceptRequest('${solicitud.solicitudId}', '${rutaId}')" class="bg-green-500 text-white font-medium py-1 px-3 rounded-lg mr-2">Aceptar</button>` : ''}
+                            ${solicitud.estado === 'PENDIENTE' ? `<button onclick="rejectRequest('${solicitud.solicitudId}', '${rutaId}')" class="bg-red-500 text-white font-medium py-1 px-3 rounded-lg mr-2">Rechazar</button>` : ''}
+                            ${solicitud.estado === 'PENDIENTE' ? `<button onclick="cancelRequestAsPassenger('${solicitud.solicitudId}', '${rutaId}')" class="bg-gray-500 text-white font-medium py-1 px-3 rounded-lg">Cancelar (Pasajero)</button>` : ''}
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            }
+            document.getElementById('manageRequestsModal').style.display = 'flex';
+        }
+
+        // Aceptar solicitud
+        async function acceptRequest(solicitudId, rutaId) {
+            try {
+                const response = await fetch(`/api/solicitudes/${solicitudId}/accept`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    alert('Solicitud aceptada exitosamente.');
+                    closeModal('manageRequestsModal');
+                    await loadRoutes();
+                } else {
+                    alert('Error al aceptar solicitud: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al aceptar solicitud: ' + error.message);
+            }
+        }
+
+        // Rechazar solicitud
+        async function rejectRequest(solicitudId, rutaId) {
+            try {
+                const response = await fetch(`/api/solicitudes/${solicitudId}/reject`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    alert('Solicitud rechazada exitosamente.');
+                    closeModal('manageRequestsModal');
+                    await loadRoutes();
+                } else {
+                    alert('Error al rechazar solicitud: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al rechazar solicitud: ' + error.message);
+            }
+        }
+
+        // Cancelar solicitud como pasajero
+        async function cancelRequestAsPassenger(solicitudId, rutaId) {
+            if (!confirm('¿Estás seguro de cancelar esta solicitud en nombre del pasajero?')) return;
+            try {
+                const response = await fetch(`/api/solicitudes/${solicitudId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: 'CANCELADA' })
+                });
+                if (response.ok) {
+                    alert('Solicitud cancelada exitosamente por el pasajero.');
+                    closeModal('manageRequestsModal');
+                    await loadRoutes();
+                } else {
+                    alert('Error al cancelar solicitud: ' + (await response.text()));
+                }
+            } catch (error) {
+                alert('Error al cancelar solicitud: ' + error.message);
+            }
+        }
+
+        // Cerrar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('rol');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

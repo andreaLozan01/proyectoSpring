@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Coordinador</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+    <style>
+        body {
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://www.uts.edu.co/sitio/wp-content/uploads/2024/02/3.jpg') no-repeat center center/cover;
+            background-attachment: fixed;
+            color: #f5f5f5;
+            font-family: 'Arial', sans-serif;
+        }
+        .sidebar {
+            transition: width 0.2s ease;
+        }
+        .sidebar:hover {
+            width: 250px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        button {
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        button:hover:not(:disabled) {
+            background-color: #d4af37;
+            transform: scale(1.02);
+        }
+        input, select {
+            transition: border-color 0.2s ease;
+        }
+        input:focus, select:focus {
+            border-color: #d4af37;
+            outline: none;
+        }
+        .table-row:hover {
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            margin: 10% auto;
+        }
+        .close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+        .error {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        .read-only {
+            color: #9ca3af;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+        .action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: medium;
+            transition: all 0.2s ease;
+        }
+        .action-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .action-button svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <!-- Barra lateral -->
+    <aside class="sidebar w-16 lg:w-64 bg-gray-800 text-white p-4 flex flex-col h-screen fixed transition-all duration-200 z-50">
+        <div class="mb-6">
+            <img src="logo.png" alt="Logo AR Carpooling" class="h-10 mx-auto mb-2">
+            <h2 class="text-center text-lg font-semibold hidden lg:block">Carpooling UTS</h2>
+        </div>
+        <nav class="flex-1">
+            <a href="#dashboard" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Dashboard</a>
+            <a href="#info" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Mi Información</a>
+            <a href="#users" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Usuarios</a>
+        </nav>
+        <div class="mt-auto">
+            <button onclick="logout()" class="w-full py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="ml-16 lg:ml-64 p-6 flex-1">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold">Panel de Coordinador</h1>
+            <div class="flex items-center space-x-4">
+                <div id="userInfo" class="text-sm"></div>
+                <div class="bg-gray-700 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección para editar información del coordinador -->
+        <div class="card p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Mi Información</h2>
+            <div class="text-center">
+                <button onclick="openEditCoordinatorModal()" class="action-button bg-yellow-500 text-white" title="Editar Información">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    Editar Mi Información
+                </button>
+            </div>
+        </div>
+
+        <!-- Sección para listar usuarios -->
+        <div class="card p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Listado de Pasajeros y Conductores</h2>
+            <div class="mb-4">
+                <input type="text" id="searchInput" placeholder="Buscar por nombre o email..." onkeyup="filterUsers()" class="w-full max-w-md p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+            </div>
+            <div class="overflow-x-auto">
+                <table id="usersTable" class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 text-left border-b border-gray-600">ID</th>
+                            <th class="p-3 text-left border-b border-gray-600">Nombre</th>
+                            <th class="p-3 text-left border-b border-gray-600">Rol</th>
+                            <th class="p-3 text-left border-b border-gray-600">Email</th>
+                            <th class="p-3 text-left border-b border-gray-600">Celular</th>
+                            <th class="p-3 text-left border-b border-gray-600">Universidad</th>
+                            <th class="p-3 text-left border-b border-gray-600">Estado</th>
+                            <th class="p-3 text-left border-b border-gray-600">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody" class="bg-transparent"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Modal para editar conductor -->
+        <div id="editDriverModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('editDriverModal')">×</span>
+                <h2 class="text-xl font-semibold text-center text-gray-800 mb-4">Editar Conductor</h2>
+                <input type="hidden" id="editDriverId">
+                <div class="space-y-3">
+                    <div class="flex flex-col">
+                        <label for="editNombre" class="text-sm font-medium mb-1 text-gray-800">Nombre</label>
+                        <input type="text" id="editNombre" placeholder="Nombre" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                        <div class="error" id="editNombreError">Por favor, ingrese un nombre.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editCelular" class="text-sm font-medium mb-1 text-gray-800">Celular</label>
+                        <input type="tel" id="editCelular" placeholder="Celular" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                        <div class="error" id="editCelularError">Por favor, ingrese un número de celular válido.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editUniversidad" class="text-sm font-medium mb-1 text-gray-800">Universidad</label>
+                        <select id="editUniversidad" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                            <option value="" disabled>Seleccione una universidad</option>
+                            <option value="Universidad Industrial de Santander (UIS)">Universidad Industrial de Santander (UIS)</option>
+                            <option value="Universidad de Santander (UDES)">Universidad de Santander (UDES)</option>
+                            <option value="Unidades Tecnológicas de Santander (UTS)">Unidades Tecnológicas de Santander (UTS)</option>
+                            <option value="Otra Universidad">Otra Universidad</option>
+                        </select>
+                        <div class="error" id="editUniversidadError">Por favor, seleccione una universidad.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="editAprobado" class="text-sm font-medium mb-1 text-gray-800">Estado de Aprobación</label>
+                        <select id="editAprobado" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                            <option value="true">Aprobado</option>
+                            <option value="false">No Aprobado</option>
+                        </select>
+                    </div>
+                    <button onclick="updateDriver()" class="w-full bg-yellow-500 text-white font-medium py-2 rounded-lg">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para editar información del coordinador -->
+        <div id="editCoordinatorModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal('editCoordinatorModal')">×</span>
+                <h2 class="text-xl font-semibold text-center text-gray-800 mb-4">Editar Mi Información</h2>
+                <form id="editCoordinatorForm" class="space-y-3">
+                    <div class="flex flex-col">
+                        <label for="coordinatorNombre" class="text-sm font-medium mb-1 text-gray-800">Nombre</label>
+                        <input type="text" id="coordinatorNombre" placeholder="Nombre" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                        <div class="error" id="coordinatorNombreError">Por favor, ingrese un nombre.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="coordinatorEmail" class="text-sm font-medium mb-1 text-gray-800">Correo</label>
+                        <input type="email" id="coordinatorEmail" placeholder="Correo" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                        <div class="error" id="coordinatorEmailError">Por favor, ingrese un correo válido.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="coordinatorCelular" class="text-sm font-medium mb-1 text-gray-800">Celular</label>
+                        <input type="tel" id="coordinatorCelular" placeholder="Celular" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                        <div class="error" id="coordinatorCelularError">Por favor, ingrese un número de celular válido.</div>
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-sm font-medium mb-1 text-gray-800">Universidad</label>
+                        <span id="coordinatorUniversidadDisplay" class="read-only"></span>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="coordinatorPassword" class="text-sm font-medium mb-1 text-gray-800">Nueva Contraseña (opcional)</label>
+                        <input type="password" id="coordinatorPassword" placeholder="Nueva contraseña (dejar vacío para no cambiar)" class="p-2 border border-gray-200 rounded-lg bg-white text-gray-800">
+                        <div class="error" id="coordinatorPasswordError">La contraseña debe tener al menos 6 caracteres.</div>
+                    </div>
+                    <button type="button" onclick="updateCoordinator()" class="w-full bg-yellow-500 text-white font-medium py-2 rounded-lg">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const coordinatorId = localStorage.getItem('userId');
+        const currentRole = localStorage.getItem('rol');
+        let allUsers = [];
+
+        // Validar acceso y cargar datos
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!coordinatorId || !currentRole || currentRole.toLowerCase() !== 'coordinador') {
+                alert('Acceso denegado. Este dashboard es solo para coordinadores.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/${coordinatorId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const user = await response.json();
+                    const universidad = user.universidad || 'No especificada';
+                    document.getElementById('userInfo').textContent = `Coordinador: ${user.nombre || coordinatorId} - Universidad: ${universidad}`;
+                    await loadUsers(universidad);
+                } else {
+                    console.error('Error al cargar información del coordinador:', response.status, await response.text());
+                    document.getElementById('userInfo').textContent = `Coordinador: ${coordinatorId} - Universidad: No especificada`;
+                }
+            } catch (error) {
+                console.error('Error al cargar información del coordinador:', error);
+                document.getElementById('userInfo').textContent = `Coordinador: ${coordinatorId} - Universidad: No especificada`;
+            }
+        });
+
+        // Cargar usuarios filtrados por universidad
+        async function loadUsers(universidad) {
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    allUsers = await response.json();
+                    displayUsers(allUsers.filter(user => 
+                        user.universidad === universidad && 
+                        (user.rol.toLowerCase() === 'pasajero' || user.rol.toLowerCase() === 'conductor')
+                    ));
+                } else {
+                    console.error('Error al cargar usuarios:', response.status, await response.text());
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                console.error('Error al cargar usuarios:', error);
+                alert('Error al cargar usuarios: ' + error.message);
+            }
+        }
+
+        // Mostrar usuarios en la tabla
+        function displayUsers(users) {
+            const tableBody = document.getElementById('usersTableBody');
+            tableBody.innerHTML = '';
+
+            if (users.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" class="p-3 text-center border-b border-gray-600">No hay pasajeros ni conductores registrados en esta universidad.</td></tr>';
+            } else {
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.classList.add('table-row');
+                    row.innerHTML = `
+                        <td class="p-3 border-b border-gray-600">${user.userId || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">${user.nombre || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">${user.rol || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">${user.email || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">${user.celular || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">${user.universidad || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">${user.estado || 'N/A'}</td>
+                        <td class="p-3 border-b border-gray-600">
+                            ${user.rol.toLowerCase() === 'conductor' ? `
+                                <button onclick="openEditDriverModal('${user.userId}')" class="action-button bg-yellow-500 text-white" title="Editar Conductor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                    Editar
+                                </button>
+                                ${user.estado === 'PENDIENTE' ? `
+                                    <button onclick="approveDriver('${user.userId}')" class="action-button bg-green-500 text-white" title="Aprobar Conductor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        Aprobar
+                                    </button>
+                                    <button onclick="rejectDriver('${user.userId}')" class="action-button bg-red-500 text-white" title="Rechazar Conductor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        Rechazar
+                                    </button>
+                                ` : ''}
+                            ` : ''}
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+
+        // Filtrar usuarios según el texto de búsqueda
+        function filterUsers() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const filteredUsers = allUsers.filter(user => 
+                user.universidad === (document.getElementById('userInfo').textContent.split('- Universidad: ')[1] || 'No especificada') &&
+                (user.rol.toLowerCase() === 'pasajero' || user.rol.toLowerCase() === 'conductor') &&
+                ((user.nombre && user.nombre.toLowerCase().includes(searchText)) ||
+                 (user.email && user.email.toLowerCase().includes(searchText)))
+            );
+            displayUsers(filteredUsers);
+        }
+
+        // Abrir modal para editar conductor
+        async function openEditDriverModal(userId) {
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const user = await response.json();
+                    console.log('Datos del conductor cargados:', user);
+                    document.getElementById('editDriverId').value = user.userId;
+                    document.getElementById('editNombre').value = user.nombre || '';
+                    document.getElementById('editCelular').value = user.celular || '';
+                    document.getElementById('editUniversidad').value = user.universidad || '';
+                    document.getElementById('editAprobado').value = user.aprobado ? 'true' : 'false';
+                    document.getElementById('editDriverModal').style.display = 'block';
+                } else {
+                    console.error('Error al cargar datos del conductor:', response.status, await response.text());
+                    alert('Error al cargar datos del conductor: ' + (await response.text()));
+                }
+            } catch (error) {
+                console.error('Error al cargar datos del conductor:', error);
+                alert('Error al cargar datos del conductor: ' + error.message);
+            }
+        }
+
+        // Actualizar datos del conductor
+        async function updateDriver() {
+            const userId = document.getElementById('editDriverId').value;
+            const nombre = document.getElementById('editNombre').value;
+            const celular = document.getElementById('editCelular').value;
+            const universidad = document.getElementById('editUniversidad').value;
+            const aprobado = document.getElementById('editAprobado').value === 'true';
+
+            const nombreError = document.getElementById('editNombreError');
+            const celularError = document.getElementById('editCelularError');
+            const universidadError = document.getElementById('editUniversidadError');
+
+            let isValid = true;
+
+            if (!nombre) {
+                nombreError.style.display = 'block';
+                isValid = false;
+            } else {
+                nombreError.style.display = 'none';
+            }
+            if (!/^\d{10}$/.test(celular)) {
+                celularError.style.display = 'block';
+                isValid = false;
+            } else {
+                celularError.style.display = 'none';
+            }
+            if (!universidad) {
+                universidadError.style.display = 'block';
+                isValid = false;
+            } else {
+                universidadError.style.display = 'none';
+            }
+
+            if (isValid) {
+                try {
+                    const userResponse = await fetch(`/api/users/${userId}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (!userResponse.ok) {
+                        throw new Error('No se pudo obtener los datos actuales del usuario');
+                    }
+                    const user = await userResponse.json();
+                    console.log('Usuario antes de actualizar:', user);
+
+                    const updatedUser = {
+                        ...user,
+                        nombre,
+                        celular,
+                        universidad,
+                        aprobado,
+                        rol: 'conductor',
+                        estado: aprobado ? 'ACTIVO' : 'INACTIVO'
+                    };
+                    console.log('Datos enviados al backend:', updatedUser);
+
+                    const response = await fetch(`/api/users/${userId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedUser)
+                    });
+                    if (response.ok) {
+                        alert('Conductor actualizado exitosamente.');
+                        closeModal('editDriverModal');
+                        const universidad = updatedUser.universidad || 'No especificada';
+                        await loadUsers(universidad);
+                    } else {
+                        const errorText = await response.text();
+                        console.error('Error al actualizar conductor:', response.status, errorText);
+                        alert('Error al actualizar conductor: ' + errorText);
+                    }
+                } catch (error) {
+                    console.error('Error al actualizar conductor:', error);
+                    alert('Error al actualizar conductor: ' + error.message);
+                }
+            }
+        }
+
+        // Aprobar conductor
+        async function approveDriver(userId) {
+            if (!confirm('¿Estás seguro de aprobar a este conductor?')) return;
+            try {
+                const userResponse = await fetch(`/api/users/${userId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!userResponse.ok) {
+                    throw new Error('No se pudo obtener los datos actuales del usuario');
+                }
+                const user = await userResponse.json();
+                console.log('Usuario antes de aprobar:', user);
+
+                const updatedUser = {
+                    ...user,
+                    estado: 'ACTIVO',
+                    aprobado: true
+                };
+                console.log('Datos enviados al backend para aprobar:', updatedUser);
+
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedUser)
+                });
+                if (response.ok) {
+                    alert('Conductor aprobado exitosamente.');
+                    const universidad = user.universidad || 'No especificada';
+                    await loadUsers(universidad);
+                } else {
+                    const errorText = await response.text();
+                    console.error('Error al aprobar conductor:', response.status, errorText);
+                    alert('Error al aprobar conductor: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error al aprobar conductor:', error);
+                alert('Error al aprobar conductor: ' + error.message);
+            }
+        }
+
+        // Rechazar conductor
+        async function rejectDriver(userId) {
+            if (!confirm('¿Estás seguro de rechazar a este conductor?')) return;
+            try {
+                const userResponse = await fetch(`/api/users/${userId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!userResponse.ok) {
+                    throw new Error('No se pudo obtener los datos actuales del usuario');
+                }
+                const user = await userResponse.json();
+                console.log('Usuario antes de rechazar:', user);
+
+                const updatedUser = {
+                    ...user,
+                    estado: 'INACTIVO',
+                    aprobado: false
+                };
+                console.log('Datos enviados al backend para rechazar:', updatedUser);
+
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedUser)
+                });
+                if (response.ok) {
+                    alert('Conductor rechazado exitosamente.');
+                    const universidad = user.universidad || 'No especificada';
+                    await loadUsers(universidad);
+                } else {
+                    const errorText = await response.text();
+                    console.error('Error al rechazar conductor:', response.status, errorText);
+                    alert('Error al rechazar conductor: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error al rechazar conductor:', error);
+                alert('Error al rechazar conductor: ' + error.message);
+            }
+        }
+
+        // Abrir modal para editar información del coordinador
+        async function openEditCoordinatorModal() {
+            try {
+                const response = await fetch(`/api/users/${coordinatorId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('coordinatorNombre').value = user.nombre || '';
+                    document.getElementById('coordinatorEmail').value = user.email || '';
+                    document.getElementById('coordinatorCelular').value = user.celular || '';
+                    document.getElementById('coordinatorUniversidadDisplay').textContent = user.universidad || 'No especificada';
+                    document.getElementById('coordinatorPassword').value = '';
+                    document.getElementById('editCoordinatorModal').style.display = 'block';
+                } else {
+                    console.error('Error al cargar datos del coordinador:', response.status, await response.text());
+                    alert('Error al cargar datos del coordinador: ' + (await response.text()));
+                }
+            } catch (error) {
+                console.error('Error al cargar datos del coordinador:', error);
+                alert('Error al cargar datos del coordinador: ' + error.message);
+            }
+        }
+
+        // Actualizar información del coordinador
+        async function updateCoordinator() {
+            const nombre = document.getElementById('coordinatorNombre').value;
+            const email = document.getElementById('coordinatorEmail').value;
+            const celular = document.getElementById('coordinatorCelular').value;
+            const password = document.getElementById('coordinatorPassword').value;
+
+            const nombreError = document.getElementById('coordinatorNombreError');
+            const emailError = document.getElementById('coordinatorEmailError');
+            const celularError = document.getElementById('coordinatorCelularError');
+            const passwordError = document.getElementById('coordinatorPasswordError');
+
+            let isValid = true;
+
+            if (!nombre) {
+                nombreError.style.display = 'block';
+                isValid = false;
+            } else {
+                nombreError.style.display = 'none';
+            }
+            if (!email.includes('@') || !email.includes('.')) {
+                emailError.style.display = 'block';
+                isValid = false;
+            } else {
+                emailError.style.display = 'none';
+            }
+            if (!/^\d{10}$/.test(celular)) {
+                celularError.style.display = 'block';
+                isValid = false;
+            } else {
+                celularError.style.display = 'none';
+            }
+            if (password && password.length < 6) {
+                passwordError.style.display = 'block';
+                isValid = false;
+            } else {
+                passwordError.style.display = 'none';
+            }
+
+            if (isValid) {
+                try {
+                    const userResponse = await fetch(`/api/users/${coordinatorId}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (!userResponse.ok) {
+                        throw new Error('No se pudo obtener los datos actuales del coordinador');
+                    }
+                    const user = await userResponse.json();
+
+                    const updatedUser = {
+                        ...user,
+                        nombre,
+                        email,
+                        celular,
+                        rol: 'coordinador',
+                        estado: user.estado,
+                        aprobado: user.aprobado,
+                        universidad: user.universidad // Mantener la universidad original
+                    };
+                    if (password) {
+                        updatedUser.password = password;
+                    }
+
+                    const response = await fetch(`/api/users/${coordinatorId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedUser)
+                    });
+                    if (response.ok) {
+                        alert('Información actualizada exitosamente.');
+                        closeModal('editCoordinatorModal');
+                        document.getElementById('userInfo').textContent = `Coordinador: ${nombre} - Universidad: ${user.universidad || 'No especificada'}`;
+                        await loadUsers(user.universidad || 'No especificada');
+                    } else {
+                        const errorText = await response.text();
+                        console.error('Error al actualizar información:', response.status, errorText);
+                        alert('Error al actualizar información: ' + errorText);
+                    }
+                } catch (error) {
+                    console.error('Error al actualizar información:', error);
+                    alert('Error al actualizar información: ' + error.message);
+                }
+            }
+        }
+
+        // Cerrar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('rol');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

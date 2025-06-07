@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Invitado - Selección de Rol</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        p {
+            color: #7f8c8d;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        .info-section {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .button-container {
+            margin-top: 30px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .conductor-btn {
+            background-color: #3498db;
+        }
+        .conductor-btn:hover {
+            background-color: #2980b9;
+        }
+        .pasajero-btn {
+            background-color: #2ecc71;
+        }
+        .pasajero-btn:hover {
+            background-color: #27ae60;
+        }
+        .logout-btn {
+            background-color: #e74c3c;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Panel de Usuario Invitado</h1>
+    <div id="userInfo" style="margin-bottom: 20px; color: #34495e;"></div>
+
+    <div class="info-section">
+        <h2>Información sobre el Sistema de Carpooling</h2>
+        <p id="welcomeMessage">
+            ¡Bienvenido, Invitado! Ahora que has sido habilitado por el administrador y se te ha asignado un coordinador, puedes participar en nuestro sistema de carpooling.
+        </p>
+        <p id="universityInfo">
+            <!-- La información sobre la universidad se llenará dinámicamente -->
+        </p>
+        <p>
+            Como usuario invitado, tienes la oportunidad de unirte a la comunidad de carpooling de tu universidad. Puedes elegir entre dos roles:
+        </p>
+        <ul style="text-align: left; max-width: 600px; margin: 20px auto; color: #7f8c8d;">
+            <li><strong>Conductor:</strong> Ofrece viajes a otros estudiantes y comparte los gastos de transporte. Podrás crear rutas, definir precios y gestionar solicitudes de pasajeros.</li>
+            <li><strong>Pasajero:</strong> Busca y únete a viajes ofrecidos por conductores. Podrás reservar un cupo en rutas que se ajusten a tus necesidades.</li>
+        </ul>
+        <p>
+            Una vez que elijas un rol, tu cuenta será actualizada y podrás acceder a todas las funcionalidades asociadas. Si tienes dudas, tu coordinador asignado estará disponible para ayudarte.
+        </p>
+    </div>
+
+    <div class="button-container">
+        <button class="conductor-btn" onclick="selectRole('Conductor')">Quiero ser Conductor</button>
+        <button class="pasajero-btn" onclick="selectRole('Pasajero')">Quiero ser Pasajero</button>
+    </div>
+
+    <div class="error" id="errorMessage"></div>
+
+    <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+
+	<script>
+	    const userId = localStorage.getItem('userId');
+	    const currentRole = localStorage.getItem('rol');
+
+	    // Validar acceso y cargar datos
+	    document.addEventListener('DOMContentLoaded', async () => {
+	        if (!userId || !currentRole) {
+	            alert('Por favor, inicia sesión.');
+	            window.location.href = 'login.html';
+	            return;
+	        }
+
+	        if (currentRole.toLowerCase() !== 'usuario invitado') {
+	            alert('Acceso denegado. Este panel es solo para usuarios invitados.');
+	            window.location.href = 'index.html';
+	            return;
+	        }
+
+	        try {
+	            const response = await fetch(`/api/users/${userId}`, {
+	                method: 'GET',
+	                headers: { 'Content-Type': 'application/json' }
+	            });
+	            if (response.ok) {
+	                const user = await response.json();
+	                console.log('Datos del usuario:', user); // Depuración
+	                console.log('coordinadorId:', user.coordinadorId); // Depuración específica
+
+	                // Validar que el usuario esté aprobado y tenga estado ACTIVO
+	                if (!user.aprobado || user.estado !== 'ACTIVO') {
+	                    alert('Tu cuenta aún no ha sido aprobada por el administrador.');
+	                    window.location.href = 'login.html';
+	                    return;
+	                }
+
+	                // Validar coordinadorId
+	                if (!user.coordinadorId || user.coordinadorId === '' || user.coordinadorId === null) {
+	                    alert('No tienes un coordinador asignado o el dato no se recibió correctamente. Contacta al administrador.');
+	                    window.location.href = 'index.html';
+	                    return;
+	                }
+
+	                // Verificar que el coordinador pertenece a la misma universidad
+	                const coordinatorResponse = await fetch(`/api/users/${user.coordinadorId}`, {
+	                    method: 'GET',
+	                    headers: { 'Content-Type': 'application/json' }
+	                });
+	                if (coordinatorResponse.ok) {
+	                    const coordinator = await coordinatorResponse.json();
+	                    console.log('Datos del coordinador:', coordinator); // Depuración
+
+	                    // Validar que el coordinador tenga el rol correcto y la misma universidad
+	                    if (coordinator.rol.toLowerCase() !== 'coordinador') {
+	                        alert('El usuario asignado como coordinador no tiene el rol correcto. Contacta al administrador.');
+	                        window.location.href = 'index.html';
+	                        return;
+	                    }
+	                    if (coordinator.universidad !== user.universidad) {
+	                        alert('El coordinador asignado no pertenece a tu universidad. Contacta al administrador.');
+	                        window.location.href = 'index.html';
+	                        return;
+	                    }
+	                } else {
+	                    alert('Error al verificar el coordinador: ' + (await coordinatorResponse.text()));
+	                    window.location.href = 'index.html';
+	                    return;
+	                }
+
+	                // Mostrar información del usuario
+	                document.getElementById('userInfo').textContent = `Usuario: ${user.nombre || userId} (Invitado) | Universidad: ${user.universidad || 'N/A'}`;
+
+	                // Personalizar la información según la universidad
+	                const universityInfo = document.getElementById('universityInfo');
+	                let universityMessage = '';
+	                switch (user.universidad) {
+	                    case 'Universidad Industrial de Santander (UIS)':
+	                        universityMessage = 'En la UIS, nuestro programa de carpooling conecta a estudiantes que viajan entre Bucaramanga y el campus principal. Participa para reducir costos y contribuir al medio ambiente.';
+	                        break;
+	                    case 'Universidad de Santander (UDES)':
+	                        universityMessage = 'La UDES promueve el carpooling para facilitar el transporte de estudiantes entre los campus de Cúcuta y Bucaramanga. Únete a la iniciativa y comparte viajes con tus compañeros.';
+	                        break;
+	                    case 'Unidades Tecnológicas de Santander (UTS)':
+	                        universityMessage = 'En las UTS, el carpooling es una gran opción para estudiantes que se desplazan dentro de Bucaramanga. Aprovecha esta oportunidad para ahorrar y conocer a otros estudiantes.';
+	                        break;
+	                    case 'Otra Universidad':
+	                        universityMessage = 'Aunque no estés en una universidad específica de nuestro programa principal, puedes participar en rutas generales y compartir viajes con otros estudiantes en tu área.';
+	                        break;
+	                    default:
+	                        universityMessage = 'Tu universidad no tiene un programa específico de carpooling, pero puedes participar en rutas generales.';
+	                }
+	                universityInfo.textContent = universityMessage;
+	            } else {
+	                alert('Error al cargar tu información: ' + (await response.text()));
+	                window.location.href = 'index.html';
+	            }
+	        } catch (error) {
+	            alert('Error al cargar tu información: ' + error.message);
+	            window.location.href = 'index.html';
+	        }
+	    });
+
+	    // Actualizar el rol del usuario
+	    async function selectRole(newRole) {
+	        const errorMessage = document.getElementById('errorMessage');
+	        errorMessage.style.display = 'none';
+
+	        try {
+	            const response = await fetch(`/api/users/${userId}`, {
+	                method: 'GET',
+	                headers: { 'Content-Type': 'application/json' }
+	            });
+	            if (!response.ok) {
+	                throw new Error('No se pudo obtener los datos actuales del usuario');
+	            }
+	            const user = await response.json();
+
+	            user.rol = newRole;
+
+	            const putResponse = await fetch(`/api/users/${userId}`, {
+	                method: 'PUT',
+	                headers: { 'Content-Type': 'application/json' },
+	                body: JSON.stringify(user)
+	            });
+
+	            if (putResponse.ok) {
+	                localStorage.setItem('rol', newRole.toLowerCase());
+	                alert(`¡Rol actualizado a ${newRole}! Ahora puedes usar las funcionalidades correspondientes.`);
+
+	                if (newRole === 'Conductor') {
+	                    window.location.href = 'dashboard-conductor.html';
+	                } else if (newRole === 'Pasajero') {
+	                    window.location.href = 'dashboard-pasajero.html';
+	                }
+	            } else {
+	                errorMessage.textContent = 'Error al actualizar tu rol: ' + (await putResponse.text());
+	                errorMessage.style.display = 'block';
+	            }
+	        } catch (error) {
+	            errorMessage.textContent = 'Error al actualizar tu rol: ' + error.message;
+	            errorMessage.style.display = 'block';
+	        }
+	    }
+
+	    function logout() {
+	        localStorage.removeItem('userId');
+	        localStorage.removeItem('rol');
+	        window.location.href = 'index.html';
+	    }
+	</script>
+</body>
+</html>

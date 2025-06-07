@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pasajero</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+    <style>
+        body {
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://www.uts.edu.co/sitio/wp-content/uploads/2024/02/3.jpg') no-repeat center center/cover;
+            background-attachment: fixed;
+            color: #f5f5f5;
+            font-family: 'Arial', sans-serif;
+        }
+        .sidebar {
+            transition: width 0.2s ease;
+        }
+        .sidebar:hover {
+            width: 250px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        button {
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        button:hover:not(:disabled) {
+            background-color: #d4af37;
+            transform: scale(1.02);
+        }
+        .table-row:hover {
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+        .status {
+            font-weight: bold;
+            color: #22c55e;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        .action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: medium;
+            transition: all 0.2s ease;
+        }
+        .action-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .action-button svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+    <!-- Barra lateral -->
+    <aside class="sidebar w-16 lg:w-64 bg-gray-800 text-white p-4 flex flex-col h-screen fixed transition-all duration-200 z-50">
+        <div class="mb-6">
+            <img src="logo.png" alt="Logo AR Carpooling" class="h-10 mx-auto mb-2">
+            <h2 class="text-center text-lg font-semibold hidden lg:block">Carpooling UTS</h2>
+        </div>
+        <nav class="flex-1">
+            <a href="#dashboard" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Dashboard</a>
+            <a href="#routes" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Buscar Rutas</a>
+            <a href="#requests" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Mis Solicitudes</a>
+            <a href="#history" class="block py-2 px-4 rounded-lg hover:bg-gray-700 mb-2">Historial</a>
+        </nav>
+        <div class="mt-auto">
+            <button onclick="logout()" class="w-full py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600">Cerrar Sesión</button>
+        </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="ml-16 lg:ml-64 p-6 flex-1">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold">Panel de Pasajero</h1>
+            <div class="flex items-center space-x-4">
+                <div id="userInfo" class="text-sm"></div>
+                <div class="bg-gray-700 p-2 rounded-full">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección para buscar rutas -->
+        <div class="card p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Buscar Rutas Disponibles</h2>
+            <div class="overflow-x-auto">
+                <table id="routesTable" class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 text-left border-b border-gray-600">ID</th>
+                            <th class="p-3 text-left border-b border-gray-600">Origen</th>
+                            <th class="p-3 text-left border-b border-gray-600">Destino</th>
+                            <th class="p-3 text-left border-b border-gray-600">Fecha/Hora</th>
+                            <th class="p-3 text-left border-b border-gray-600">Cupos</th>
+                            <th class="p-3 text-left border-b border-gray-600">Precio (COP)</th>
+                            <th class="p-3 text-left border-b border-gray-600">Conductor ID</th>
+                            <th class="p-3 text-left border-b border-gray-600">Nombre del Conductor</th>
+                            <th class="p-3 text-left border-b border-gray-600">Celular del Conductor</th>
+                            <th class="p-3 text-left border-b border-gray-600">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="routesTableBody" class="bg-transparent"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sección para mis solicitudes -->
+        <div class="card p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Mis Solicitudes</h2>
+            <div class="overflow-x-auto">
+                <table id="requestsTable" class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 text-left border-b border-gray-600">ID Solicitud</th>
+                            <th class="p-3 text-left border-b border-gray-600">Ruta ID</th>
+                            <th class="p-3 text-left border-b border-gray-600">Estado</th>
+                            <th class="p-3 text-left border-b border-gray-600">Fecha Solicitud</th>
+                            <th class="p-3 text-left border-b border-gray-600">Nombre del Conductor</th>
+                            <th class="p-3 text-left border-b border-gray-600">Celular</th>
+                            <th class="p-3 text-left border-b border-gray-600">Total a Pagar (COP)</th>
+                            <th class="p-3 text-left border-b border-gray-600">Estado de la Ruta</th>
+                            <th class="p-3 text-left border-b border-gray-600">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestsTableBody" class="bg-transparent"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sección para historial de rutas -->
+        <div class="card p-4">
+            <h2 class="text-xl font-semibold mb-4">Historial de Rutas</h2>
+            <div class="overflow-x-auto">
+                <table id="historyTable" class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 text-left border-b border-gray-600">ID Ruta</th>
+                            <th class="p-3 text-left border-b border-gray-600">Fecha/Hora</th>
+                            <th class="p-3 text-left border-b border-gray-600">Origen</th>
+                            <th class="p-3 text-left border-b border-gray-600">Destino</th>
+                            <th class="p-3 text-left border-b border-gray-600">Conductor ID</th>
+                            <th class="p-3 text-left border-b border-gray-600">Nombre del Conductor</th>
+                            <th class="p-3 text-left border-b border-gray-600">Celular</th>
+                            <th class="p-3 text-left border-b border-gray-600">Total a Pagar (COP)</th>
+                            <th class="p-3 text-left border-b border-gray-600">Duración</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="bg-transparent"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const userId = localStorage.getItem('userId');
+        const currentRole = localStorage.getItem('rol');
+
+        // Validar acceso al dashboard y cargar datos
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!userId || !currentRole) {
+                alert('Por favor, inicia sesión.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (currentRole !== 'pasajero') {
+                alert('Acceso denegado. Este dashboard es solo para pasajeros.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('userInfo').textContent = `Usuario: ${user.nombre || userId} (Pasajero)`;
+                } else {
+                    document.getElementById('userInfo').textContent = `Usuario: ${userId} (Pasajero)`;
+                }
+            } catch (error) {
+                console.error('Error al cargar información del usuario:', error);
+                document.getElementById('userInfo').textContent = `Usuario: ${userId} (Pasajero)`;
+            }
+
+            await loadRoutes();
+            await loadRequests();
+            await loadHistory();
+        });
+
+        // Cargar rutas disponibles
+        async function loadRoutes() {
+            try {
+                const currentDate = new Date('2025-05-23T22:58:00-05:00'); // Fecha actual: 23 de mayo de 2025, 10:58 PM -05
+                const response = await fetch('/api/rutas', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const routes = await response.json();
+                    const filteredRoutes = routes.filter(route => route.activa && new Date(route.fechaHora) >= currentDate);
+                    const tableBody = document.getElementById('routesTableBody');
+                    tableBody.innerHTML = '';
+
+                    if (filteredRoutes.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="10" class="p-3 text-center border-b border-gray-600">No hay rutas disponibles.</td></tr>';
+                    } else {
+                        for (const route of filteredRoutes) {
+                            const conductor = await getConductor(route.conductorId);
+                            const row = document.createElement('tr');
+                            row.classList.add('table-row');
+                            row.innerHTML = `
+                                <td class="p-3 border-b border-gray-600">${route.rutaId || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${route.origen || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${route.destino || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${new Date(route.fechaHora).toLocaleString('es-CO', { timeZone: 'America/Bogota' }) || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${route.cuposDisponibles || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${route.precio || 'N/A'} COP</td>
+                                <td class="p-3 border-b border-gray-600">${route.conductorId || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${conductor.nombre || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${conductor.celular || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">
+                                    <button onclick="requestRoute('${route.rutaId}')" class="action-button bg-green-500 text-white" title="Solicitar Ruta">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Solicitar
+                                    </button>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        }
+                    }
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                alert('Error al cargar rutas: ' + error.message);
+                console.error('Detalles del error:', error);
+            }
+        }
+
+        // Cargar solicitudes del pasajero
+        async function loadRequests() {
+            try {
+                const response = await fetch(`/api/solicitudes/pasajero/${userId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const requests = await response.json();
+                    const filteredRequests = requests.filter(request => request.estado !== 'PASADA');
+                    const tableBody = document.getElementById('requestsTableBody');
+                    tableBody.innerHTML = '';
+
+                    if (filteredRequests.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="9" class="p-3 text-center border-b border-gray-600">No hay solicitudes pendientes.</td></tr>';
+                    } else {
+                        for (const request of filteredRequests) {
+                            const route = await getRoute(request.rutaId);
+                            const conductor = await getConductor(route.conductorId);
+                            const routeStatus = route.estado === 'EN CURSO' ? '<span class="status">Ruta Iniciada</span>' : 
+                                               route.estado === 'PASADA' ? '<span class="status">Ruta Finalizada</span>' : '';
+                            const row = document.createElement('tr');
+                            row.classList.add('table-row');
+                            row.innerHTML = `
+                                <td class="p-3 border-b border-gray-600">${request.solicitudId || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${request.rutaId || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${request.estado || 'N/A'}</td>
+                                <td class currency="p-3 border-b border-gray-600">${request.fechaSolicitud ? new Date(request.fechaSolicitud).toLocaleString('es-CO', { timeZone: 'America/Bogota' }) : 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${conductor.nombre || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${conductor.celular || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${route.precio || 'N/A'} COP</td>
+                                <td class="p-3 border-b border-gray-600">${routeStatus}</td>
+                                <td class="p-3 border-b border-gray-600">
+                                    ${request.estado === 'PENDIENTE' ? `
+                                        <button onclick="cancelRequest('${request.solicitudId}')" class="action-button bg-red-500 text-white" title="Cancelar Solicitud">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            Cancelar
+                                        </button>
+                                    ` : ''}
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        }
+                    }
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                alert('Error al cargar solicitudes: ' + error.message);
+                console.error('Detalles del error:', error);
+            }
+        }
+
+        // Cargar historial de rutas
+        async function loadHistory() {
+            try {
+                const response = await fetch(`/api/solicitudes/pasajero/${userId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const requests = await response.json();
+                    const filteredRequests = requests.filter(request => request.estado === 'PASADA');
+                    const tableBody = document.getElementById('historyTableBody');
+                    tableBody.innerHTML = '';
+
+                    if (filteredRequests.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="9" class="p-3 text-center border-b border-gray-600">No hay historial de rutas.</td></tr>';
+                    } else {
+                        for (const request of filteredRequests) {
+                            const route = await getRoute(request.rutaId);
+                            const conductor = await getConductor(route.conductorId);
+                            const row = document.createElement('tr');
+                            row.classList.add('table-row');
+                            row.innerHTML = `
+                                <td class="p-3 border-b border-gray-600">${request.rutaId || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${new Date(route.fechaHora).toLocaleString('es-CO', { timeZone: 'America/Bogota' }) || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${route.origen || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${route.destino || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${route.conductorId || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${conductor.nombre || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${conductor.celular || 'N/A'}</td>
+                                <td class="p-3 border-b border-gray-600">${route.precio || 'N/A'} COP</td>
+                                <td class="p-3 border-b border-gray-600">${route.duracion > 0 ? formatTime(route.duracion) : 'No registrada'}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        }
+                    }
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                alert('Error al cargar historial: ' + error.message);
+                console.error('Detalles del error:', error);
+            }
+        }
+
+        // Solicitar una ruta
+        async function requestRoute(rutaId) {
+            try {
+                const response = await fetch('/api/solicitudes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pasajeroId: userId, rutaId, estado: 'PENDIENTE', fechaSolicitud: new Date().toISOString() })
+                });
+                if (response.ok) {
+                    alert('Solicitud enviada exitosamente.');
+                    await loadRequests();
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                alert('Error al solicitar ruta: ' + error.message);
+            }
+        }
+
+        // Cancelar una solicitud
+        async function cancelRequest(solicitudId) {
+            if (!confirm('¿Estás seguro de cancelar esta solicitud?')) return;
+            try {
+                const response = await fetch(`/api/solicitudes/${solicitudId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: 'CANCELADO' })
+                });
+                if (response.ok) {
+                    alert('Solicitud cancelada exitosamente.');
+                    await loadRequests();
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                alert('Error al cancelar solicitud: ' + error.message);
+            }
+        }
+
+        // Obtener detalles de una ruta
+        async function getRoute(rutaId) {
+            const response = await fetch('/api/rutas', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const routes = await response.json();
+            return routes.find(r => r.rutaId === rutaId) || {};
+        }
+
+        // Obtener detalles del conductor
+        async function getConductor(conductorId) {
+            try {
+                const response = await fetch(`/api/users/${conductorId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    return await response.json();
+                } else {
+                    return { nombre: 'N/A', celular: 'N/A' };
+                }
+            } catch (error) {
+                console.error('Error al obtener conductor:', error);
+                return { nombre: 'N/A', celular: 'N/A' };
+            }
+        }
+
+        // Formatear tiempo en hh:mm:ss
+        function formatTime(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('rol');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
